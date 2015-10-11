@@ -92,7 +92,7 @@ df$address.stateAbbr <- as.factor(df$address.stateAbbr)
 df$address.zip <- as.factor(df$address.zip)
 df$address.city <- as.factor(df$address.city)
 
-# Data processing - START
+# Build URL - START
 
         # This is the base url for the Google Geocoding API
         url.base <- "https://maps.googleapis.com/maps/api/geocode/"
@@ -110,13 +110,13 @@ df$address.city <- as.factor(df$address.city)
         url.address <- gsub(" ", "+",with(df, paste(address.street, address.city, address.stateAbbr, sep = ", ")))
 
         # The API key
-        url.apiKey <- "AIzaSyCSFWbr6V-tpFXh46UhCav3YK7qCmvaMr0"
+        url.apiKey <- readLines("~/Private-Github-Files/google_geocoding_api_key.txt", warn = FALSE)
 
         # Combine the base, format, address and api key to create a URL that 
         #   calls the Google Geocoding API
         df$url <- paste(url.base, url.format, "address=", url.address, "&components=postal_code:", df$address.zip, "&key=", url.apiKey, sep = "")
         
-# Data processing - END
+# Build URL - END
 
 
 # Webscrape - START
@@ -130,6 +130,11 @@ df$address.city <- as.factor(df$address.city)
         getLng <- function(url) {
                 fromJSON(url)$results$geometry$location$lng
         }
+        
+        df <- cbind(df, sapply(df$url, getLat))
+        df <- cbind(df, sapply(df$url, getLng))
+        
+        with(df, plot(df$`sapply(df$url, getLng)`, df$`sapply(df$url, getLat)`))
         
 # Webscrape - END
 
@@ -150,7 +155,7 @@ df$address.city <- as.factor(df$address.city)
 #df$lng <- sapply(df$url, getLng)
 
 
-a <- sapply(df$url, getLat)
+a <- sapply(df$url, getLng)
 bz.a <- a
 bz.b <- bz.a
 rm(a)
@@ -162,3 +167,7 @@ df$lng <- cbind(df, unlist(sapply(df$url, getLng)))
 
 #df <- c("https://maps.googleapis.com/maps/api/geocode/json?address=314+Wood+Hollow+Court,+Annapolis,+MD&key=AIzaSyCSFWbr6V-tpFXh46UhCav3YK7qCmvaMr0", "https://maps.googleapis.com/maps/api/geocode/json?address=419+Maple+Road,+Severna+Park,+MD&key=AIzaSyCSFWbr6V-tpFXh46UhCav3YK7qCmvaMr0")
 #df <- as.data.frame.AsIs(df)
+
+
+issue <- 'https://maps.googleapis.com/maps/api/geocode/json?address=1550+Westbranch+Drive,+McLean,+VA&components=postal_code:22102&key=AIzaSyCSFWbr6V-tpFXh46UhCav3YK7qCmvaMr0'
+getLng(issue)
